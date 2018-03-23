@@ -368,12 +368,13 @@ type FakeDirector struct {
 		result1 []director.Config
 		result2 error
 	}
-	UpdateConfigStub        func(configType string, name string, content []byte) (director.Config, error)
+	UpdateConfigStub        func(configType string, name string, content []byte, expectedLatestId string) (director.Config, error)
 	updateConfigMutex       sync.RWMutex
 	updateConfigArgsForCall []struct {
-		configType string
-		name       string
-		content    []byte
+		configType       string
+		name             string
+		content          []byte
+		expectedLatestId string
 	}
 	updateConfigReturns struct {
 		result1 director.Config
@@ -2006,7 +2007,7 @@ func (fake *FakeDirector) ListConfigsReturnsOnCall(i int, result1 []director.Con
 	}{result1, result2}
 }
 
-func (fake *FakeDirector) UpdateConfig(configType string, name string, content []byte) (director.Config, error) {
+func (fake *FakeDirector) UpdateConfig(configType string, name string, content []byte, expectedLatestId string) (director.Config, error) {
 	var contentCopy []byte
 	if content != nil {
 		contentCopy = make([]byte, len(content))
@@ -2015,14 +2016,15 @@ func (fake *FakeDirector) UpdateConfig(configType string, name string, content [
 	fake.updateConfigMutex.Lock()
 	ret, specificReturn := fake.updateConfigReturnsOnCall[len(fake.updateConfigArgsForCall)]
 	fake.updateConfigArgsForCall = append(fake.updateConfigArgsForCall, struct {
-		configType string
-		name       string
-		content    []byte
-	}{configType, name, contentCopy})
-	fake.recordInvocation("UpdateConfig", []interface{}{configType, name, contentCopy})
+		configType       string
+		name             string
+		content          []byte
+		expectedLatestId string
+	}{configType, name, contentCopy, expectedLatestId})
+	fake.recordInvocation("UpdateConfig", []interface{}{configType, name, contentCopy, expectedLatestId})
 	fake.updateConfigMutex.Unlock()
 	if fake.UpdateConfigStub != nil {
-		return fake.UpdateConfigStub(configType, name, content)
+		return fake.UpdateConfigStub(configType, name, content, expectedLatestId)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -2036,10 +2038,10 @@ func (fake *FakeDirector) UpdateConfigCallCount() int {
 	return len(fake.updateConfigArgsForCall)
 }
 
-func (fake *FakeDirector) UpdateConfigArgsForCall(i int) (string, string, []byte) {
+func (fake *FakeDirector) UpdateConfigArgsForCall(i int) (string, string, []byte, string) {
 	fake.updateConfigMutex.RLock()
 	defer fake.updateConfigMutex.RUnlock()
-	return fake.updateConfigArgsForCall[i].configType, fake.updateConfigArgsForCall[i].name, fake.updateConfigArgsForCall[i].content
+	return fake.updateConfigArgsForCall[i].configType, fake.updateConfigArgsForCall[i].name, fake.updateConfigArgsForCall[i].content, fake.updateConfigArgsForCall[i].expectedLatestId
 }
 
 func (fake *FakeDirector) UpdateConfigReturns(result1 director.Config, result2 error) {

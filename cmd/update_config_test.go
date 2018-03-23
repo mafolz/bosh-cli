@@ -51,7 +51,7 @@ var _ = Describe("UpdateConfigCmd", func() {
 
 			Expect(director.UpdateConfigCallCount()).To(Equal(1))
 
-			t, name, bytes := director.UpdateConfigArgsForCall(0)
+			t, name, bytes, _ := director.UpdateConfigArgsForCall(0)
 			Expect(t).To(Equal("my-type"))
 			Expect(name).To(Equal("my-name"))
 			Expect(bytes).To(Equal([]byte("fake-config\n")))
@@ -84,7 +84,7 @@ var _ = Describe("UpdateConfigCmd", func() {
 
 			Expect(director.UpdateConfigCallCount()).To(Equal(1))
 
-			t, name, bytes := director.UpdateConfigArgsForCall(0)
+			t, name, bytes, _ := director.UpdateConfigArgsForCall(0)
 			Expect(t).To(Equal("my-type"))
 			Expect(name).To(Equal("my-name"))
 			Expect(bytes).To(Equal([]byte("name1: val1-from-kv\nname2: val2-from-file\nxyz: val\n")))
@@ -161,6 +161,34 @@ var _ = Describe("UpdateConfigCmd", func() {
 			Expect(ui.Said).To(ContainElement("- some line that was removed\n"))
 		})
 
+		Context("when expected-latest-id is specified", func() {
+			BeforeEach(func() {
+				opts = UpdateConfigOpts{
+					Args: UpdateConfigArgs{
+						Config: FileBytesArg{Bytes: []byte("---")},
+					},
+					Type:             "my-type",
+					Name:             "my-name",
+					ExpectedLatestId: "123",
+				}
+			})
+
+			It("does not update config if expected-latest-id does not match latest id", func() {
+				director.UpdateConfigReturns(boshdir.Config{}, errors.New("'123' does not match expected-latest-id"))
+
+				err := act()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(ContainSubstring("'123' does not match expected-latest-id"))
+			})
+
+			It("updates config if expected-latest-id matches latest id", func() {
+				director.UpdateConfigReturns(boshdir.Config{Type: "my-type", Name: "my-name"}, nil)
+
+				err := act()
+				Expect(err).ToNot(HaveOccurred())
+			})
+		})
+
 		Context("when uploading an empty YAML document", func() {
 			BeforeEach(func() {
 				opts = UpdateConfigOpts{
@@ -175,7 +203,7 @@ var _ = Describe("UpdateConfigCmd", func() {
 			It("returns YAML null", func() {
 				err := act()
 				Expect(err).ToNot(HaveOccurred())
-				_, _, bytes := director.UpdateConfigArgsForCall(0)
+				_, _, bytes, _ := director.UpdateConfigArgsForCall(0)
 				Expect(bytes).To(Equal([]byte("null\n")))
 			})
 		})

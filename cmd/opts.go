@@ -331,9 +331,10 @@ type DiffConfigArgs struct {
 }
 
 type UpdateConfigOpts struct {
-	Args UpdateConfigArgs `positional-args:"true" required:"true"`
-	Type string           `long:"type" required:"true" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
-	Name string           `long:"name" required:"true" description:"Config name"`
+	Args             UpdateConfigArgs `positional-args:"true" required:"true"`
+	Type             string           `long:"type" required:"true" description:"Config type, e.g. 'cloud', 'runtime', or 'cpi'"`
+	Name             string           `long:"name" required:"true" description:"Config name"`
+	ExpectedLatestId string           `long:"expected-latest-id" required:"false" description:"Expected ID of latest config"`
 	VarFlags
 	OpsFlags
 	cmd
